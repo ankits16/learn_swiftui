@@ -6,21 +6,33 @@
 //
 
 import Foundation
+import Combine
 
 /**
  Mock Model for predictive search
  */
-class MockSearchViewModel: SearchViewModel {
-    init(state: SearchState) {
-        super.init()
+class MockSearchViewModel: SearchViewModel<Record> {
+    
+    init(state: SearchState<Record>) {
+        super.init() { q, completion in
+            debugPrint("<<<<<< called")
+            completion(
+                [Record(text: "Apple")]
+            )
+        }
         self.searchState = state
         cancelQuerySubscription()
     }
 }
 
-class MockSearchViewModelWithSelectedRecords: SearchViewModel {
+class MockSearchViewModelWithSelectedRecords: SearchViewModel<Record> {
     init(_ selectedRecords : [Record]) {
-        super.init()
+        super.init() { q, completion in
+            debugPrint("<<<<<< called")
+            completion(
+                [Record(text: "Apple")]
+            )
+        }
         self.selectedRecords = selectedRecords
 //        cancelQuerySubscription()
     }

@@ -9,37 +9,59 @@ import Foundation
 import SwiftUI
 import Combine
 
-enum SearchState {
+enum SearchState<T : Equatable> : Equatable{
     case idle
     case fetching
-    case fetched([Record])  // Contains an array of fetched records
+    case fetched([T])  // Contains an array of fetched records
     case failed(String)     // Contains an error message
+    
+    static func ==(lhs: SearchState<T>, rhs: SearchState<T>) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.fetching, .fetching):
+            return true
+        case (.fetched(let a), .fetched(let b)):
+            return a == b
+        case (.failed(let a), .failed(let b)):
+            return a == b
+        default:
+            return false
+        }
+    }
 }
 
-class SearchViewModel: ObservableObject {
+class SearchViewModel<Item : BubbleItemProtocol>: ObservableObject {
     @Published var query = ""
-    @Published var selectedRecords: [Record] = []
-    @Published var searchState: SearchState = .idle
+    @Published var selectedRecords: [Item] = []
+    @Published var searchState: SearchState<Item> = .idle
     
     
     private var queryCancellable: AnyCancellable?
+    var fetchResults: (String, @escaping ([Item]) -> Void) -> Void
+
+    var searchedRecords : [Item]?{
+        if case .fetched(let records) = searchState{
+            return records
+        }else{
+            return nil
+        }
+    }
     
-    // Dummy data for demonstration
-    private var allRecords = [
-        Record(text: "Apple"),
-        Record(text: "Banana"),
-        Record(text: "Alabama"),
-        Record(text: "Apricot"),
-        Record(text: "Alphanso"),
-        Record(text: "Alien")
-        // Add more records as needed
-    ]
-    
-    init() {
+    init(fetchResults: @escaping (String, @escaping ([Item]) -> Void) -> Void) {
+        self.fetchResults = fetchResults
         queryCancellable = $query
-            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
-            .removeDuplicates()
-            .sink { [weak self] in self?.search(query: $0) }
+                    .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+                    .removeDuplicates()
+                    .sink { [weak self] in self?.performSearch(query: $0) }
+        //        $query
+        //                    .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+        //                    .removeDuplicates()
+        //                    .flatMap { [weak self] query in
+        //                        self?.searchState = .fetching
+        //                        return searchService(query)
+        //                            .catch { _ in Just([]) }
+        //                            .map { SearchState.fetched($0) }
+        //                    }
+        //                    .assign(to: &$searchState)
     }
     
     // Add a method to cancel the subscription
@@ -49,67 +71,47 @@ class SearchViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    private func search(query: String) {
-        debugPrint("<<<< perform search for \(query)")
+    private func performSearch(query: String) {
         guard !query.isEmpty else {
             searchState = .idle
             return
         }
-        
         searchState = .fetching
-        // Simulate asynchronous search
-        
-        let baseUrl = "https://restcountries.com/v3.1/name/"
-        guard let url = URL(string: baseUrl + query) else {
-            return
-        }
-        debugPrint("url is \(url)")
-        
-        
-        /*URLSession.shared.dataTask(with: url) { data, response, error in
-            if let data = data {
-                let countries = try? JSONDecoder().decode([Country].self, from: data)
-                DispatchQueue.main.async {
-                    if let unwrappedCountries = countries,
-                       !unwrappedCountries.isEmpty{
-                        self.searchState = .fetched(unwrappedCountries)
-//                        allRecords = unwrappedCountries
-                    }else{
-                        self.searchState = .failed("No records found")
-                    }
-//                    completion(countries ?? [])
+        fetchResults(query) { [weak self] results in
+            DispatchQueue.main.async {
+                if results.isEmpty {
+                    self?.searchState = .failed("No results found")
+                } else {
+                    self?.searchState = .fetched(results)
                 }
-            }
-        }.resume()*/
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            // Filter out selected records
-            let results = self.allRecords.filter { record in
-                !self.selectedRecords.contains(where: { $0.id == record.id }) &&
-                record.text.lowercased().contains(query.lowercased())
-            }
-            debugPrint("<<<< searched results \(results)")
-            if results.isEmpty {
-                self.searchState = .failed("No records found")
-            } else {
-                self.searchState = .fetched(results)
             }
         }
     }
     
-    func selectRecord(_ record: Record) {
+    func selectRecord(_ record: Item) {
         debugPrint("<<<< select record \(record)")
         selectedRecords.append(record)
         searchState = .idle  // Optionally reset the search state
         query =  ""
     }
     
-    func removeRecord(_ record: Record) {
+    func removeRecord(_ record: Item) {
         debugPrint("<<<< remove record \(record)")
         selectedRecords.removeAll { $0.id == record.id }
     }
     
     func clearAllSelections(){
         selectedRecords.removeAll()
+    }
+    
+    func selectFirstRecordIfAAvailableAsUserPressedEnter(){
+        if let firstRecord = searchedRecords?.first{
+            selectRecord(firstRecord)
+        }
+    }
+    
+    func dismiss(){
+        searchState = .idle  // Optionally reset the search state
+        query =  ""
     }
 }

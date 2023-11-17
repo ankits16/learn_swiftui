@@ -161,14 +161,56 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            PredictiveSearchView(viewModel: SearchViewModel())
+            Text("EmailPredictiveSearch")
+            Spacer(minLength: 100)
+            EmailPredictiveSearch(
+                viewModel: SearchViewModel<Country>(
+                    fetchResults: { q, completion in
+                        let baseUrl = "https://restcountries.com/v3.1/name/"
+                        guard let url = URL(string: baseUrl + q) else {
+                            return
+                        }
+                        debugPrint("url is \(url)")
+                        
+                        URLSession.shared.dataTask(with: url) { data, response, error in
+                            var countries: [Country] = []
+                            
+                            if let data = data {
+                                do {
+                                    // Parse the JSON data
+                                    if let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+                                        for jsonObject in jsonArray {
+                                            countries.append(Country(jsonObject))
+                                        }
+                                    }
+                                } catch {
+                                    print("JSON parsing error: \(error)")
+                                }
+                            }
+                            
+                            DispatchQueue.main.async {
+                                completion(countries)
+                            }
+                        }.resume()
+                        /*URLSession.shared.dataTask(with: url) { data, response, error in
+                            if let data = data {
+                                let countries = try? JSONDecoder().decode([Country].self, from: data)
+                                DispatchQueue.main.async {
+                                    completion(countries ?? [])
+                                }
+                            }
+                        }.resume()*/
+                    }
+                )) { _ in
+                    
+                }
 //            SampleTextfield()
 //            EmailBubblesView()
             Divider() // Visual separator, if needed
 //
-            EmailPredictiveSearch(viewModel: SearchViewModel()) { _ in
-
-            }
+//            EmailPredictiveSearch(viewModel: SearchViewModel()) { _ in
+//
+//            }
 //            // First SuggestionPicker
 //            SuggestionPicker(allSuggestions: firstSuggestions)
 //                .padding()

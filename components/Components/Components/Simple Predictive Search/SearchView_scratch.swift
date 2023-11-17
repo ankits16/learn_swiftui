@@ -12,29 +12,35 @@ func fetchCountries(query: String, completion: @escaping ([Country]) -> Void) {
     debugPrint("url is \(url)")
     
     URLSession.shared.dataTask(with: url) { data, response, error in
-        if let data = data {
-            let countries = try? JSONDecoder().decode([Country].self, from: data)
-            DispatchQueue.main.async {
-                completion(countries ?? [])
-            }
+        if let unwrappedData = data {
+//            let countries = try? JSONDecoder().decode([Country].self, from: unwrappedData)
+//            DispatchQueue.main.async {
+//                completion(countries ?? [])
+//            }
         }
     }.resume()
 }
 
-struct Country: Codable, Identifiable, Hashable, Displayable, BubbleItemProtocol {
-    var id: UUID = UUID()
-    
-    var text: String
-    
-//    var id: String {
-//        return name.common
-//    }
-    var name: Name
-    struct Name: Codable, Hashable {
-        var common: String
+struct Country: Identifiable {
+    static func == (lhs: Country, rhs: Country) -> Bool {
+        return lhs.id == rhs.id
     }
+    
+    var id: UUID
+    private let rawData : [String : Any]
+    init(_ rawData : [String : Any]){
+        self.rawData = rawData
+        self.id = UUID()
+    }
+}
+
+extension Country : Displayable, BubbleItemProtocol{
+    var text: String {
+        return (rawData["name"] as? [String : Any])?["common"] as? String ?? "NA"
+    }
+    
     var displayName: String{
-        return self.name.common
+        return (rawData["name"] as? [String : Any])?["common"] as? String ?? "NA"
     }
 }
 
@@ -120,7 +126,7 @@ struct SearchView: View {
                                         }
                                         isPopoverVisible = false
                                     }) {
-                                        Text(country.name.common)
+                                        Text(country.displayName)
                                             .background(selectedCountries.contains(where: { $0.id == country.id }) ? Color.blue.opacity(0.3) : Color.clear)
                                     }
                                 }
@@ -141,7 +147,7 @@ struct SearchView: View {
                             VStack(alignment: .leading) {
                                 ForEach(selectedCountries, id: \.id) { country in
                                     HStack(spacing: 5) {
-                                        Text(country.name.common)
+                                        Text(country.displayName)
                                             .padding(.all, 10)
                                             .background(Color.blue)
                                             .foregroundColor(.white)

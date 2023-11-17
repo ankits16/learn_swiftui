@@ -14,8 +14,8 @@ import SwiftUI
  2. Fetched records successfully and show list of suggestions
  3. Unable o fetch records or no records found
  */
-struct SearchStateDisplayer: View {
-    @ObservedObject var viewModel: SearchViewModel
+struct SearchStateDisplayer<Item: BubbleItemProtocol>: View {
+    @ObservedObject var viewModel: SearchViewModel<Item>
     var body: some View {
         VStack{
             switch viewModel.searchState {
@@ -44,9 +44,9 @@ struct SearchStateDisplayer: View {
                 EmptyView()
             }
         }
-//        .onChange(of: viewModel.searchState) { newValue in
-//            debugPrint("<<<<< new state \(newValue)")
-//        }
+        .onChange(of: viewModel.searchState) { newValue in
+            debugPrint("<<<<< new state ")
+        }
     }
 }
 

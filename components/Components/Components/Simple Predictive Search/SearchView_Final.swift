@@ -182,17 +182,17 @@ struct SearchView_Previews2: PreviewProvider {
                     debugPrint("url is \(url)")
                     
                     URLSession.shared.dataTask(with: url) { data, response, error in
-                        if let data = data {
-                            let countries = try? JSONDecoder().decode([Country].self, from: data)
-                            DispatchQueue.main.async {
-                                completion(countries ?? [])
-                            }
-                        }
+//                        if let data = data {
+//                            let countries = try? JSONDecoder().decode([Country].self, from: data)
+//                            DispatchQueue.main.async {
+//                                completion(countries ?? [])
+//                            }
+//                        }
                     }.resume()
                 },
                 content: { country, action in
                     HStack {
-                        Text(country.name.common)
+                        Text(country.displayName)
                             .padding(.all, 10)
                             .background(Color.blue)
                             .foregroundColor(.white)

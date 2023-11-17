@@ -15,7 +15,7 @@ import SwiftUI
  3.Selected Records
  */
 struct PredictiveSearchView: View {
-    @StateObject var viewModel : SearchViewModel //= SearchViewModel()
+    @StateObject var viewModel : SearchViewModel<Record> //= SearchViewModel()
     
     var body: some View {
         VStack {
@@ -67,7 +67,7 @@ struct PredictiveSearchView: View {
     }
 }
 
-struct PredictiveSearch_Previews: PreviewProvider {
+/*struct PredictiveSearch_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Preview for testing
@@ -106,4 +106,4 @@ struct PredictiveSearch_Previews: PreviewProvider {
                 .previewDisplayName("Failed State")
         }
     }
-}
+}*/

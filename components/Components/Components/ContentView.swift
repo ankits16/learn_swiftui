@@ -41,16 +41,16 @@ struct AssignmentForm : View{
                         
                         URLSession.shared.dataTask(with: url) { data, response, error in
                             if let data = data {
-                                let countries = try? JSONDecoder().decode([Country].self, from: data)
-                                DispatchQueue.main.async {
-                                    completion(countries ?? [])
-                                }
+//                                let countries = try? JSONDecoder().decode([Country].self, from: data)
+//                                DispatchQueue.main.async {
+//                                    completion(countries ?? [])
+//                                }
                             }
                         }.resume()
                     },
                     content: { country, action in
                         HStack {
-                            Text(country.name.common)
+                            Text(country.displayName)
                                 .padding(.all, 10)
                                 .background(Color.blue)
                                 .foregroundColor(.white)
@@ -69,7 +69,7 @@ struct AssignmentForm : View{
                 Spacer()
                 Button("Assign") {
                     for country in selectedCountries {
-                        print(country.name.common)
+                        print(country.displayName)
                     }
                 }
                 .frame(maxWidth: .infinity)

@@ -14,7 +14,7 @@ import SwiftUI
  
  */
 struct EmailPredictiveSearch: View {
-    @StateObject var viewModel : SearchViewModel
+    @StateObject var viewModel : SearchViewModel<Country>
     @State private var layout: [UUID: FlowLayoutAlignmentGuide] = [:]
     var completion: (CGFloat) -> Void
     var spacing : CGFloat  = 10
@@ -24,7 +24,6 @@ struct EmailPredictiveSearch: View {
     @State private var endForlastElement : CGFloat = CGFloat.zero
     @State private var topForlastElement : CGFloat = CGFloat.zero
     @State private var maxHeightForCurrentRow : CGFloat = CGFloat.zero
-    
     
     var body: some View {
 //        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
@@ -70,19 +69,7 @@ struct EmailPredictiveSearch: View {
                 // Add a TextField at the end
                 TextField("Type email address", text: $viewModel.query)
                     .onSubmit {
-                        // Validate and add email to the model
-                        if isValidEmail(viewModel.query) {
-                            //we'll see what needs to be done
-//                                viewModel.
-//                                bubbleModel.addItem(BubbleItem(text: textInput))
-//    //                            bubbleModel.addItem(textInput)
-//                                textInput = "" // Clear the TextField
-//                                let (l, computedHeight) = getLayout(g)
-//                                layout = l
-//                                DispatchQueue.main.async {
-//                                    completion(computedHeight)
-//                                }
-                        }
+                        viewModel.selectFirstRecordIfAAvailableAsUserPressedEnter()
                     }
                 .background(
                     GeometryReader { geometry in
@@ -119,9 +106,11 @@ struct EmailPredictiveSearch: View {
             .background(Color.white)
             .border(.blue)
             .padding(.all, 5)
+            
         })
         .padding(.all, 5)
         .border(.pink)
+        
     }
     
     private func isValidEmail(_ email: String) -> Bool {
@@ -197,13 +186,13 @@ struct EmailPredictiveSearch: View {
     }
 }
 
-struct EmailPredictiveSearch_Previews: PreviewProvider {
-    static var previews: some View {
-//        Group {
-            // Preview for testing
-        EmailPredictiveSearch(viewModel: MockSearchViewModelWithSelectedRecords(
-            [Record]())) { _ in
-                
-            }
-    }
-}
+//struct EmailPredictiveSearch_Previews: PreviewProvider {
+//    static var previews: some View {
+////        Group {
+//            // Preview for testing
+//        EmailPredictiveSearch(viewModel: MockSearchViewModelWithSelectedRecords(
+//            [Record]())) { _ in
+//                
+//            }
+//    }
+//}

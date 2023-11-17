@@ -10,19 +10,13 @@ import SwiftUI
 /**
  This is the view which show list of suggestions to predictive view
  */
-struct FetchedRecordsView: View {
-    @ObservedObject var viewModel: SearchViewModel
+struct FetchedRecordsView<Item: BubbleItemProtocol>: View {
+    @ObservedObject var viewModel: SearchViewModel<Item>
 //    var records: [Record]
     private let rowHeight1: CGFloat = 44 // Define your standard row height here
-    private var records : [Record]?{
-        if case .fetched(let records) = viewModel.searchState{
-            return records
-        }else{
-            return nil
-        }
-    }
+    
     private func calculateListHeight() -> CGFloat {
-        guard let unwrappedRecord = records else{ return 0}
+        guard let unwrappedRecord = viewModel.searchedRecords else{ return 0}
         var totalHeight: CGFloat = 0
         
         for record in unwrappedRecord {
@@ -50,7 +44,7 @@ struct FetchedRecordsView: View {
     
     
     var body: some View {
-        if let unwrappedRecords = records{
+        if let unwrappedRecords =  viewModel.searchedRecords{
             List(unwrappedRecords, id: \.id) { record in
                     Text(record.text)
                     .onTapGesture {
